@@ -17,4 +17,5 @@ for line in lines:
 
 cv.imshow("sudoku", canny)
 cv.imshow("line", img)
+cv.imwrite("../Image/sudoku_001_line.png",img)
 cv.waitKey()
