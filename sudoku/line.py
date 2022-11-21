@@ -4,7 +4,10 @@ from numpy import cos, sin, pi
 
 img = cv.imread('../Image/sudoku_001.png')
 gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-canny = cv.Canny(gray, 50, 150)
+ret, binary = cv.threshold(gray, 128, 255, cv.THRESH_BINARY)
+
+canny = cv.Canny(cv.bitwise_not(binary), 50, 150)
+
 lines = cv.HoughLines(canny, 0.1, np.pi / 180, 150)
 for line in lines:
     rho, theta = line[0]
@@ -16,6 +19,9 @@ for line in lines:
         print(rho, theta)
 
 cv.imshow("sudoku", canny)
+cv.imshow("binary", binary)
 cv.imshow("line", img)
-cv.imwrite("../Image/sudoku_001_line.png",img)
-cv.waitKey()
+cv.imwrite("../Image/sudoku_001_line.png", img)
+key = cv.waitKey()
+if key == ord('q'):
+    print(key)

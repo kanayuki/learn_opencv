@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-path = r"C:\Users\HuiLing\Desktop\FWnd-jwaIAEpaNG.jpg"
+path = r"Image/img.png"
 img = cv2.imread(path)
 
 hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
