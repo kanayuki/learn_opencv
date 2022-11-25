@@ -14,3 +14,4 @@ Image Processing
 ![sudoku](Image/sudoku_001_rect.png)
 ![sudoku](Image/sudoku_001_clip.png)
 ![sudoku](Image/sudoku_001_tiles.png)
+![sudoku](Image/sudoku-recognition.png)

@@ -2,7 +2,7 @@ import cv2 as cv
 import numpy as np
 import torch
 import torchvision
-from torch import nn
+from CNN import CNN
 
 img = cv.imread('../Image/sudoku_001.png')
 gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
@@ -18,27 +18,12 @@ x_min, y_min = np.min(np.squeeze(poly), 0)
 x_max, y_max = np.max(np.squeeze(poly), 0)
 sudoku = gray[y_min:y_max, x_min: x_max]
 
+to_tensor = torchvision.transforms.ToTensor()
 
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
+cnn = torch.load('sudoku-cnn.ckpt')
 
-        self.module = nn.Sequential(
-            nn.Linear(784, 500),
-            nn.ReLU(True),
-            nn.Linear(500, 10)
-        )
-
-    def forward(self, x):
-        x = self.module(x)
-        return x
-
-
-net = Net().cuda()
-net.load_state_dict(torch.load('feedforward.ckpt'))
-transforms = torchvision.transforms.ToTensor()
-
-# 分割
+# 分割, 识别
+tw, th = 38, 45
 x_step, y_step = int((x_max - x_min) / 9), int((y_max - y_min) / 9)
 print(x_step, y_step)
 tiles = []
@@ -47,24 +32,34 @@ for i in range(9):
     for j in range(9):
         tile = sudoku[i * y_step:(i + 1) * y_step, j * x_step:(j + 1) * x_step]
         tile = tile[8:-8, 8:-8]
-        tile = cv.resize(tile, (28, 28))
         tile = cv.bitwise_not(tile)
         tiles.append(tile)
+        # 识别数字
         if cv.countNonZero(tile) == 0:
             nums.append(0)
             continue
-        img = transforms(tile)
-        img = img.reshape(-1, 28 * 28).cuda()
-        output = net(img)
-        _, predicted = torch.max(output, 1)
-        nums.append(predicted.cpu().numpy()[0])
 
+        cnts, _ = cv.findContours(tile, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        if cnts:
+            x, y, w, h = cv.boundingRect(cnts[0])
+            # 裁剪出相同大小
+            x = int(x + w / 2 - tw / 2)
+            y = int(y + h / 2 - th / 2)
+            tile = tile[y:y + th, x:x + tw]
+
+            img = to_tensor(tile).reshape(1, tw * th).cuda()
+            output = cnn(img)
+            _, predicted = output.max(1)
+            print(predicted.item() + 1)
+            nums.append(predicted.item() + 1)
+        else:
+            raise Exception('没有发现轮廓！')
+
+print(np.array(nums).reshape((-1, 9)))
 
 tiles = np.hstack(tiles)
 img = np.vstack(np.hsplit(tiles, 9))
 cv.imshow("img", img)
-
-print(np.array(nums).reshape((-1, 9)))
 
 key = cv.waitKey()
 if key == ord('q'):
