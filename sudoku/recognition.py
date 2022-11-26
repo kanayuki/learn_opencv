@@ -4,7 +4,7 @@ import torch
 import torchvision
 from CNN import CNN
 
-img = cv.imread('../Image/sudoku_001.png')
+img = cv.imread('../Image/sudoku_002.png')
 gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 canny = cv.Canny(gray, 50, 150)
 
@@ -55,7 +55,9 @@ for i in range(9):
         else:
             raise Exception('没有发现轮廓！')
 
-print(np.array(nums).reshape((-1, 9)))
+sudoku_data = np.array(nums).reshape((-1, 9))
+print(sudoku_data)
+np.savetxt('sudoku_data.txt', sudoku_data)
 
 tiles = np.hstack(tiles)
 img = np.vstack(np.hsplit(tiles, 9))
