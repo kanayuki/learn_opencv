@@ -9,6 +9,8 @@ Video
 Image Processing
 
 ## Image - Sudoku
+![sudoku](Image/sudoku_solve.png)
+
 ### 直线
 ![sudoku](Image/sudoku_001_line.png)
 

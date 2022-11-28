@@ -11,17 +11,17 @@ canny = cv.Canny(gray, 50, 150)
 contours, hierarchy = cv.findContours(canny, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 # [[pt0,pt1,pt2,,,], [],,,], [[0后,1前,2父,3内], [],,,]
 print(contours[0].shape)
-rect = [cont for cont in contours if cv.contourArea(cont) > 4e4]
-print(f'数量:{len(rect)}')
-print(f'Shape:{rect[0].shape}')
-rect = rect[0]
-poly = cv.approxPolyDP(rect, 10, True)
+cnts = [cont for cont in contours if cv.contourArea(cont) > 4e4]
+print(f'数量:{len(cnts)}')
+print(f'Shape:{cnts[0].shape}')
+cnt = cnts[0]
+poly = cv.approxPolyDP(cnt, 10, True)
 print(f'Shape:{poly.shape}')
 
 # 绘制轮廓矩形
 copy = img.copy()
 cv.polylines(copy, [poly], True, (0, 0, 255), 5)
-cv.polylines(copy, [rect], True, (0, 255, 0), 2)
+cv.polylines(copy, [cnt], True, (0, 255, 0), 2)
 
 # cv.imshow("sudoku", canny)
 # cv.imshow("binary", binary)
