@@ -57,7 +57,7 @@ for i in range(9):
 
 sudoku_data = np.array(nums).reshape((-1, 9))
 print(sudoku_data)
-np.savetxt('sudoku_data.txt', sudoku_data)
+np.savetxt('data/sudoku_data.txt', sudoku_data)
 
 tiles = np.hstack(tiles)
 img = np.vstack(np.hsplit(tiles, 9))

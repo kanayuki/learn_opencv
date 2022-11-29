@@ -1,6 +1,8 @@
 import sys
+import time
 
 import numpy as np
+import pyautogui
 import torchvision
 import win32api
 import win32gui
@@ -31,8 +33,8 @@ class Sudoku:
     def grab_win(self):
         handle = win32gui.FindWindow(None, 'Microsoft Sudoku')
         x1, y1, x2, y2 = win32gui.GetWindowRect(handle)
-        bbox = [x1, y1, x2 - x1, y2 - y1]
-        image = ImageGrab.grab(bbox)
+        self.bbox = [x1, y1, x2 - x1, y2 - y1]
+        image = ImageGrab.grab(self.bbox)
         return image
 
     def find_sudoku(self):
@@ -43,7 +45,7 @@ class Sudoku:
         canny = cv.Canny(gray, 50, 150)
         contours, _ = cv.findContours(canny, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
-        cnts = [cnt for cnt in contours if cv.contourArea(cnt) > 1e4]
+        cnts = [cnt for cnt in contours if cv.contourArea(cnt) > 5e4]
         if not cnts:
             print('没有找到数独轮廓')
             return False
@@ -54,6 +56,7 @@ class Sudoku:
         xmax, ymax = np.max(np.squeeze(poly), 0)
         clip = gray[ymin:ymax, xmin:xmax]
 
+        self.clip_region = [xmin, ymin, xmax, ymax]
         self.sudoku_img = clip
         self.split_recognized()
         return True
@@ -70,6 +73,8 @@ class Sudoku:
         tiles = []
         nums = []
         xstep, ystep = int(col / 9), int(row / 9)
+        self.xstep = xstep
+        self.ystep = ystep
         e = int(ystep * 0.12)
 
         # t = 145
@@ -114,13 +119,63 @@ class Sudoku:
         # cv.waitKey()
 
 
+def click_num(n):
+    locs = []
+    for i in range(1, 10):
+        pos = pyautogui.locateCenterOnScreen(f'btn_img/btn_{i}.png')
+        locs.append(pos)
+
+
 if __name__ == '__main__':
+    print('started')
+    handle = win32gui.FindWindow(None, 'Microsoft Sudoku')
+    win32gui.ShowWindow(handle, 4)
+    win32gui.SetForegroundWindow(handle)
+    # 判断是否加载中
+    while True:
+        time.sleep(0.5)
+        if pyautogui.locateCenterOnScreen('btn_img/Menu_Back.png', confidence=0.8):
+            break
+
+    print('Sudoku loaded!')
+    time.sleep(0.5)
+
     sudoku = Sudoku()
     sudoku.save_img('screenshot.jpg')
 
     np.save('data/sudoku_data-6', sudoku.sudoku_data)
 
-    solver = SudokuSolver(sudoku.sudoku_data)
+    solver = SudokuSolver(sudoku.sudoku_data.copy())
     solve = solver.s()
     print(solve)
     print(solver.check())
+
+    # 自动填入
+
+    locs = []
+    for i in range(1, 10):
+        pos = pyautogui.locateCenterOnScreen(f'btn_img/btn_{i}.png', confidence=0.8)
+        locs.append(pos)
+        # pyautogui.click(*pos)
+
+    rx = sudoku.bbox[0] + sudoku.clip_region[0]
+    ry = sudoku.bbox[1] + sudoku.clip_region[1]
+    pos_blank = rx + sudoku.xstep * 10, ry + sudoku.ystep / 2
+    print(pos_blank)
+    time.sleep(0.1)
+    pyautogui.click(*pos_blank)
+    time.sleep(0.1)
+
+    data = solve - sudoku.sudoku_data
+    print('fill', data)
+    for ind in range(9):
+        pyautogui.click(*locs[ind])
+        time.sleep(0.3)
+        poss = np.argwhere(data == (ind + 1))
+        for i, j in poss:
+            pos = rx + (j + 0.5) * sudoku.xstep, ry + (i + 0.5) * sudoku.ystep
+            pyautogui.click(*pos)
+            time.sleep(0.1)
+
+    pyautogui.click(*pos_blank)
+    time.sleep(0.2)
