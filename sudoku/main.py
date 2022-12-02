@@ -37,7 +37,7 @@ def play(n=1):
     sudoku.find_sudoku(sudoku.grab_win())
     sudoku.save_img('screenshot.jpg')
     sudoku.split_recognized()
-    np.savetxt('data/sudoku {}.txt'.format(datetime.now().strftime('%Y%m%d%H%M%S')), sudoku.sudoku_data, '%d')
+    np.savetxt('data/sudoku {}.txt'.format(datetime.now().strftime('%Y%m%d %H%M%S')), sudoku.sudoku_data, '%d')
 
     solver = SudokuSolver(sudoku.sudoku_data.copy())
     solve = solver.s()
