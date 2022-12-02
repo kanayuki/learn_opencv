@@ -9,6 +9,9 @@ Video
 Image Processing
 
 ## Image - Sudoku
+视频演示：
+<https://www.bilibili.com/video/BV14M41167AB>
+
 ![sudoku](Image/sudoku_solve.png)
 
 ### 直线

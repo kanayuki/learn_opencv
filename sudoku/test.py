@@ -38,15 +38,17 @@ from torchvision import transforms
 #         cv.imwrite(os.path.join(dir, 'nums', f'{order}-num-{num}.png'), img)
 #
 # print('ok')
-handle = win32gui.FindWindow(None, 'Microsoft Sudoku')
-win32gui.ShowWindow(handle, 4)
-win32gui.SetForegroundWindow(handle)
-time.sleep(3)
-locs = []
-for i in range(1, 10):
-    pos = pyautogui.locateCenterOnScreen(f'btn_img/btn_{i}.png')
-    locs.append(pos)
-    pyautogui.click(*pos)
+# handle = win32gui.FindWindow(None, 'Microsoft Sudoku')
+# win32gui.ShowWindow(handle, 4)
+# win32gui.SetForegroundWindow(handle)
+# time.sleep(3)
+# locs = []
+# for i in range(1, 10):
+#     pos = pyautogui.locateCenterOnScreen(f'btn_img/btn_{i}.png')
+#     locs.append(pos)
+#     pyautogui.click(*pos)
 
+from datetime import datetime
 
-np.array().copy()
+datetime.now().strftime("")
+

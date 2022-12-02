@@ -2,7 +2,7 @@ import cv2 as cv
 import numpy as np
 import torch
 import torchvision
-from CNN import CNN
+from sudoku_cnn import CNN
 
 img = cv.imread('../Image/sudoku_002.png')
 gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)

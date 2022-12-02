@@ -29,8 +29,8 @@ class MyDataSet(torch.utils.data.Dataset):
 
         path = os.path.join(self.dir, name)
         img = Image.open(path)
-
-        img = to_tensor( img)
+        img = cv.GaussianBlur(np.array(img), (5, 5), 0)
+        img = to_tensor(img)
         label = torch.tensor(label)
 
         return img, label
@@ -44,20 +44,34 @@ class CNN(nn.Module):
         super(CNN, self).__init__()
 
         self.module = nn.Sequential(
-            nn.Conv2d(1, 9, 3, padding=1),
-            nn.ReLU(True),
-            nn.MaxPool2d(2, 2),
+            # nn.Conv2d(1, 64, 3, padding=1),
+            # nn.ReLU(True),
+            # nn.MaxPool2d(2, 2),
+            #
+            # nn.Conv2d(64, 128, 3, padding=1),
+            # nn.ReLU(True),
+            # nn.MaxPool2d(3, 2),
 
-            nn.Conv2d(9, 64, 3, padding=1),
-            nn.ReLU(True),
-            nn.MaxPool2d(3, 2),
+            # nn.Conv2d(128, 256, 3, padding=1),
+            # nn.ReLU(True),
+            # nn.MaxPool2d(3, 2),
 
             nn.Flatten(),
-            nn.Linear(7 * 7 * 64, 1000),
+            nn.Linear(30*30, 900),
+            # nn.Dropout(),
             nn.ReLU(True),
-            nn.Linear(1000, 500),
+            # nn.Linear(1000, 1000),
+            # # nn.Dropout(),
+            # nn.ReLU(True),
+            nn.Linear(900, 100),
+            # nn.Dropout(),
+            # nn.ReLU(True),
+            # nn.Linear(500, 100),
+            # nn.Dropout(),
             nn.ReLU(True),
-            nn.Linear(500, 9),
+            nn.Linear(100, 9),
+
+            nn.Softmax(1)
 
         )
 
@@ -66,11 +80,9 @@ class CNN(nn.Module):
         return x
 
 
-def train(cnn):
+def train(cnn, num_epochs=10):
     my_dataset = MyDataSet()
-    train_loader = torch.utils.data.DataLoader(dataset=my_dataset, batch_size=10, shuffle=True)
-
-    num_epochs = 10
+    train_loader = torch.utils.data.DataLoader(dataset=my_dataset, batch_size=16, shuffle=True)
 
     optimizer = torch.optim.Adam(cnn.parameters(), 1e-3)
     loss_fn = nn.CrossEntropyLoss()
@@ -88,14 +100,15 @@ def train(cnn):
             loss.backward()
             optimizer.step()
 
-            print('Epoch [{}/{}] Step [{}/{}] Loss: {}'.format(epoch, num_epochs, i, total_step, loss.item()))
+            print('Epoch [{}/{}] Step [{}/{}] Loss: {}'.format(epoch + 1, num_epochs, i + 1, total_step, loss.item()))
 
-    torch.save(cnn, 'sudoku-cnn.ckpt')
+    torch.save(cnn.state_dict(), 'sudoku-cnn.ckpt')
 
 
 def test():
-    cnn = torch.load('sudoku-cnn.ckpt')
-    img = Image.open('../Image/nums/22-num-5.png')
+    cnn = CNN().cuda()
+    cnn.load_state_dict(torch.load('sudoku-cnn.ckpt'))
+    img = Image.open('../Image/nums/219-num-8.png')
 
     img = to_tensor(img).reshape(1, 1, 30, 30).cuda()
     output = cnn(img)
@@ -107,11 +120,28 @@ def test():
     print(n)
 
 
+def recognizer():
+    cnn = CNN().cuda()
+    cnn.load_state_dict(torch.load('sudoku-cnn.ckpt'))
+    size = 30
+
+    def recog(image):
+        image = cv.resize(image, (size, size))
+        img = to_tensor(image).reshape(1, 1, size, size).cuda()
+
+        output = cnn(img)
+        _, predicted = output.max(1)
+        n = predicted.item() + 1
+        return n
+
+    return recog
+
+
 if __name__ == '__main__':
     cnn = CNN().cuda()
     print(cnn)
     # summary(cnn, (1, 30, 30))
 
-    train(cnn)
+    train(cnn, 100)
     #
     test()
